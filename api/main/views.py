@@ -8,7 +8,8 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from .constants import (MAX_STUDENTS_IN_COURSE, MIN_PASSWORD_LENGTH_MSG,
-                        REQUIRED_FIELDS_ABSENT_MSG, SUCCESS_REGISTRATION_MSG, )
+                        REQUIRED_FIELDS_ABSENT_MSG, PASSWORDS_DO_NOT_MATCH_MSG,
+                        SUCCESS_REGISTRATION_MSG, )
 from .models import Course
 from .permissions import IsAdmin, IsAdminOrReadOnly
 from .serializers import StudentSerializer, CourseSerializer
@@ -95,13 +96,16 @@ class UserRegistrationAPIView(APIView):
 
         username = request.data.get('username')
         password = request.data.get('password')
+        confirm_password = request.data.get('confirm_password')
         response = {'success': False}
         resp_status = status.HTTP_400_BAD_REQUEST
 
         if username is None or password is None:
             response['message'] = REQUIRED_FIELDS_ABSENT_MSG
-        elif len(password) < 8:
+        elif len(password) < 8 or len(confirm_password) < 8:
             response['message'] = MIN_PASSWORD_LENGTH_MSG
+        elif password != confirm_password:
+            response['message'] = PASSWORDS_DO_NOT_MATCH_MSG
         else:
             user = User.objects.create(username=username)
             user.set_password(password)
@@ -112,6 +116,37 @@ class UserRegistrationAPIView(APIView):
                 'message': SUCCESS_REGISTRATION_MSG,
                 'redirect_url': '/login'
             }
-            status = status.HTTP_201_CREATED
+            resp_status = status.HTTP_201_CREATED
+
+        return Response(response, status=resp_status)
+
+
+class ChangePasswordAPIView(APIView):
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get('current_password')
+        new_password = request.data.get('new_password')
+        confirm_password = request.data.get('confirm_password')
+        response = {'success': False}
+        resp_status = status.HTTP_400_BAD_REQUEST
+
+        if current_password is None or new_password is None or confirm_password is None:
+            response['message'] = REQUIRED_FIELDS_ABSENT_MSG
+        else:
+            is_current_password_valid = user.check_password(current_password)
+            if is_current_password_valid is False:
+                response['message'] = 'Incorrect Current Password.'
+            elif len(new_password) < 8 or len(confirm_password) < 8:
+                response['message'] = 'Passwords should be atleast 8 characters long.'
+            elif new_password != confirm_password:
+                response['message'] = PASSWORDS_DO_NOT_MATCH_MSG
+            else:
+                user.set_password(new_password)
+                user.save()
+                response = {
+                    'success': True,
+                    'message': 'Password Updated Successfully.'
+                }
+                resp_status = status.HTTP_200_OK
 
         return Response(response, status=resp_status)
