@@ -68,6 +68,7 @@ REST_FRAMEWORK = {
 
 JWT_AUTH = {
     'JWT_EXPIRATION_DELTA': datetime.timedelta(days=180),
+    'JWT_RESPONSE_PAYLOAD_HANDLER': 'api.jwt_utils.jwt_response_payload_handler'
 }
 
 ROOT_URLCONF = 'api.urls'
