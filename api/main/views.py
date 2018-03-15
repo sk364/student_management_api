@@ -31,6 +31,11 @@ class CourseViewSet(ModelViewSet):
 
     @detail_route(methods=['put'], permission_classes=(IsAuthenticated, ))
     def enroll(self, request, pk):
+        users = request.data.get('user_ids')
+
+        if users is None:
+            users = [request.user]
+
         response = {'success': False}
         resp_status = status.HTTP_400_BAD_REQUEST
 
@@ -38,8 +43,8 @@ class CourseViewSet(ModelViewSet):
             course = Course.objects.get(pk=pk)
 
             if course.users.count() < MAX_STUDENTS_IN_COURSE:
-                course.users.add(request.user)
-                users = [user.id for user in course.users.all()]
+                course.users.add(*users)
+                users = StudentSerializer(course.users.all(), many=True).data
 
                 response = {
                     'success': True,
@@ -56,19 +61,21 @@ class CourseViewSet(ModelViewSet):
 
     @detail_route(methods=['put'], permission_classes=(IsAuthenticated, ))
     def leave(self, request, pk):
-        user = request.data.get('user_id') or request.user
+        users = request.data.get('user_ids')
+        if users is None:
+            users = [request.user]
 
         response = {'success': False}
         resp_status = status.HTTP_400_BAD_REQUEST
 
         try:
             course = Course.objects.get(pk=pk)
-            course.users.remove(user)
-            users = [user.id for user in course.users.all()]
+            course.users.remove(*users)
+            users = StudentSerializer(course.users.all(), many=True).data
 
             response = {
                 'success': True,
-                'users': users,
+                'users': users
             }
             resp_status = status.HTTP_200_OK
         except Course.DoesNotExist:
