@@ -10,6 +10,6 @@ router.register(r'students', StudentViewSet)
 router.register(r'courses', CourseViewSet)
 
 urlpatterns = [
-    url(r'signup/$', UserRegistrationAPIView.as_view()),
-    url(r'change-password/$', ChangePasswordAPIView.as_view()),
+    url(r'signup/$', UserRegistrationAPIView.as_view(), name="signup"),
+    url(r'change-password/$', ChangePasswordAPIView.as_view(), name="change-password"),
 ] + router.urls
