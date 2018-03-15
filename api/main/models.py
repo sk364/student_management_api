@@ -3,7 +3,7 @@ from django.db import models
 
 
 class Course(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=50)
     users = models.ManyToManyField(User, related_name='user_courses')
 
     class Meta:
