@@ -21,3 +21,14 @@ class IsAdminOrReadOnly(BasePermission):
             return True
 
         return request.user and request.user.is_superuser
+
+
+class DisallowCreateOrUpdate(BasePermission):
+    """
+    Custom permission class to not allow post http method.
+    """
+
+    def has_permission(self, request, view):
+        if request.method in ['POST', 'PUT']:
+            return False
+        return True
