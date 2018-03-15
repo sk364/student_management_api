@@ -11,20 +11,20 @@ from .constants import (MAX_STUDENTS_IN_COURSE, MIN_PASSWORD_LENGTH_MSG,
                         REQUIRED_FIELDS_ABSENT_MSG, PASSWORDS_DO_NOT_MATCH_MSG,
                         SUCCESS_REGISTRATION_MSG, )
 from .models import Course
-from .permissions import IsAdmin, IsAdminOrReadOnly
+from .permissions import DisallowCreateOrUpdate, IsAdmin, IsAdminOrReadOnly
 from .serializers import StudentSerializer, CourseSerializer
 
 
 class StudentViewSet(ModelViewSet):
     queryset = User.objects.filter(is_staff=False, is_superuser=False)
     serializer_class = StudentSerializer
-    permission_classes = (IsAdmin, )
+    permission_classes = (IsAdmin, DisallowCreateOrUpdate, )
 
 
 class CourseViewSet(ModelViewSet):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = (IsAdminOrReadOnly, )
+    permission_classes = (IsAdminOrReadOnly, IsAuthenticated, )
 
     def get_serializer_context(self):
         return {'user': self.request.user}
