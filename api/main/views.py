@@ -94,7 +94,13 @@ class UserRegistrationAPIView(APIView):
 
         :form: `username` Username string
 
+        :form: `first_name` First Name string
+
+        :form: `last_name` Last Name string
+
         :form: `password` Password string
+
+        :form: `confirm_password` Confirm password string
 
         :response: `200` Successfully Registered
 
@@ -104,6 +110,8 @@ class UserRegistrationAPIView(APIView):
         """
 
         username = request.data.get('username')
+        first_name = request.data.get('first_name')
+        last_name = request.data.get('last_name')
         password = request.data.get('password')
         confirm_password = request.data.get('confirm_password')
         response = {'success': False}
@@ -116,7 +124,11 @@ class UserRegistrationAPIView(APIView):
         elif password != confirm_password:
             response['message'] = PASSWORDS_DO_NOT_MATCH_MSG
         else:
-            user = User.objects.create(username=username)
+            user = User.objects.create(
+                username=username,
+                first_name=first_name,
+                last_name=last_name
+            )
             user.set_password(password)
             user.save()
 
