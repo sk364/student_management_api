@@ -16,7 +16,7 @@ from .serializers import StudentSerializer, CourseSerializer
 
 
 class StudentViewSet(ModelViewSet):
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_staff=False, is_superuser=False)
     serializer_class = StudentSerializer
     permission_classes = (IsAdmin, )
 
@@ -56,12 +56,14 @@ class CourseViewSet(ModelViewSet):
 
     @detail_route(methods=['put'], permission_classes=(IsAuthenticated, ))
     def leave(self, request, pk):
+        user = request.data.get('user_id') or request.user
+
         response = {'success': False}
         resp_status = status.HTTP_400_BAD_REQUEST
 
         try:
             course = Course.objects.get(pk=pk)
-            course.users.remove(request.user)
+            course.users.remove(user)
             users = [user.id for user in course.users.all()]
 
             response = {
