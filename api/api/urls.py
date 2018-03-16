@@ -19,7 +19,7 @@ urlpatterns = [
     url(r'^', include('main.urls')),
 ]
 
-if settings.DEBUG:
+if settings.DEBUG != 'False':
     import debug_toolbar
 
     urlpatterns += [
